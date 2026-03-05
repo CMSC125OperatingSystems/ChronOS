@@ -11,6 +11,7 @@ public class MainFrame extends JFrame {
 
     private final CardLayout cardLayout;
     private final JPanel cardPanel;
+    private DashboardView dashboardView;
 
     public MainFrame() {
         setTitle("ChronOS");
@@ -23,7 +24,7 @@ public class MainFrame extends JFrame {
 
         // Instantiate Panel Views
         SplashView splashView = new SplashView();
-        DashboardView dashboardView = new DashboardView();
+        dashboardView = new DashboardView();
 
         cardPanel.add(splashView, VIEW_SPLASH);
         cardPanel.add(dashboardView, VIEW_DASHBOARD);
@@ -33,5 +34,9 @@ public class MainFrame extends JFrame {
     // Method called by Controller to switch to Dashboard
     public void showDashboard() {
         cardLayout.show(cardPanel, VIEW_DASHBOARD);
+    }
+
+    public DashboardView getDashboardView() {
+        return dashboardView;
     }
 }
