@@ -16,6 +16,7 @@ public class SimulationView extends JPanel {
     private final DefaultTableModel resultTableModel;
     private final GanttChartPanel ganttChartPanel;
     private final JButton newBatchBtn, restartBtn, togglePauseBtn, exitBtn;
+    private final JComboBox<String> speedCombo; // NEW: Speed controller
 
     private final Map<String, Color> processColors = new HashMap<>();
     private final Color[] palette = {
@@ -27,7 +28,7 @@ public class SimulationView extends JPanel {
         setLayout(new BorderLayout(15, 15));
 
         infoLabel = new JLabel("Method | Algorithm");
-        infoLabel.setFont(new Font("SansSerif", Font.BOLD, 28)); // Much larger
+        infoLabel.setFont(new Font("SansSerif", Font.BOLD, 28));
         infoLabel.setHorizontalAlignment(SwingConstants.CENTER);
         add(infoLabel, BorderLayout.NORTH);
 
@@ -36,34 +37,33 @@ public class SimulationView extends JPanel {
         resultTableModel = new DefaultTableModel(cols, 0);
 
         JTable resultTable = new JTable(resultTableModel);
-        resultTable.setFont(new Font("SansSerif", Font.PLAIN, 18)); // Larger Table Text
-        resultTable.setRowHeight(35); // Taller rows
-        resultTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 18)); // Larger Headers
+        resultTable.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        resultTable.setRowHeight(35);
+        resultTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 18));
         centerPanel.add(new JScrollPane(resultTable), BorderLayout.CENTER);
 
         JPanel avgPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 30, 10));
         avgWtLabel = new JLabel("Average Waiting Time: 0.00");
         avgTatLabel = new JLabel("Average Turnaround Time: 0.00");
-        avgWtLabel.setFont(new Font("SansSerif", Font.BOLD, 20)); // Larger
-        avgTatLabel.setFont(new Font("SansSerif", Font.BOLD, 20)); // Larger
+        avgWtLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        avgTatLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
         avgPanel.add(avgWtLabel);
         avgPanel.add(avgTatLabel);
         centerPanel.add(avgPanel, BorderLayout.SOUTH);
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // Setup Dynamic Gantt Layout
         JPanel bottomPanel = new JPanel(new BorderLayout());
         JPanel ganttContainer = new JPanel(new BorderLayout());
         ganttContainer.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
         timeLabel = new JLabel("Time: 00:00");
-        timeLabel.setFont(new Font("SansSerif", Font.BOLD, 24)); // Larger
+        timeLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
         timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         ganttContainer.add(timeLabel, BorderLayout.NORTH);
 
         ganttChartPanel = new GanttChartPanel();
-        ganttChartPanel.setPreferredSize(new Dimension(800, 120)); // Big fixed height for bar
+        ganttChartPanel.setPreferredSize(new Dimension(800, 120));
         ganttContainer.add(ganttChartPanel, BorderLayout.CENTER);
         bottomPanel.add(ganttContainer, BorderLayout.CENTER);
 
@@ -77,8 +77,18 @@ public class SimulationView extends JPanel {
         newBatchBtn.setFont(btnFont); restartBtn.setFont(btnFont);
         togglePauseBtn.setFont(btnFont); exitBtn.setFont(btnFont);
 
-        controlsPanel.add(newBatchBtn); controlsPanel.add(restartBtn);
-        controlsPanel.add(togglePauseBtn); controlsPanel.add(exitBtn);
+        // NEW: Speed Controller UI
+        JLabel speedLabel = new JLabel("Speed:");
+        speedLabel.setFont(btnFont);
+        speedCombo = new JComboBox<>(new String[]{"1.0x", "1.5x", "2.0x", "3.0x", "5.0x"});
+        speedCombo.setFont(btnFont);
+
+        controlsPanel.add(newBatchBtn);
+        controlsPanel.add(restartBtn);
+        controlsPanel.add(togglePauseBtn);
+        controlsPanel.add(speedLabel);    // ADDED
+        controlsPanel.add(speedCombo);    // ADDED
+        controlsPanel.add(exitBtn);
 
         bottomPanel.add(controlsPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
@@ -88,7 +98,7 @@ public class SimulationView extends JPanel {
         infoLabel.setText(method + "   |   " + algorithm);
         resultTableModel.setRowCount(0);
         processColors.clear();
-        ganttChartPanel.reset(); // Reset Bar graphics
+        ganttChartPanel.reset();
 
         int cIdx = 0;
         for (ProcessModel p : processes) {
@@ -126,7 +136,6 @@ public class SimulationView extends JPanel {
         avgTatLabel.setText(String.format("Average Turnaround Time: %.2f", avgTat));
     }
 
-    // --- INNER CLASS: Custom Fully Responsive Dynamic Gantt Chart Component ---
     class GanttChartPanel extends JPanel {
         class GanttBlock {
             String processId;
@@ -145,7 +154,6 @@ public class SimulationView extends JPanel {
                 blocks.add(new GanttBlock(processId, tick, tick + 1, color));
             } else {
                 GanttBlock last = blocks.get(blocks.size() - 1);
-                // Dynamically merge contiguous blocks of same Process
                 if (last.processId.equals(processId) && last.endTick == tick) {
                     last.endTick = tick + 1;
                 } else {
@@ -171,7 +179,7 @@ public class SimulationView extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             int width = getWidth();
-            int height = getHeight() - 35; // Leave space underneath for the numeric time labels
+            int height = getHeight() - 35;
             int y = 5;
 
             g2.setFont(new Font("SansSerif", Font.BOLD, 24));
@@ -181,42 +189,37 @@ public class SimulationView extends JPanel {
                 GanttBlock b = blocks.get(i);
                 int x = (int) ((double) b.startTick / totalTime * width);
                 int w = (int) ((double) (b.endTick - b.startTick) / totalTime * width);
-                if (i == blocks.size() - 1) w = width - x; // Fill remainder exactly to avoid 1px rounding gap
+                if (i == blocks.size() - 1) w = width - x;
 
-                // 1. Fill Solid Block Color
                 g2.setColor(b.color);
                 g2.fillRect(x, y, w, height);
 
-                // 2. Outline Block border
                 g2.setColor(ThemeManager.isDarkTheme ? Color.WHITE : Color.BLACK);
                 g2.setStroke(new BasicStroke(2));
                 g2.drawRect(x, y, w, height);
 
-                // 3. Process ID text inside block
                 String text = b.processId.equals("IDLE") ? "-" : b.processId;
                 g2.setColor(b.processId.equals("IDLE") ? (ThemeManager.isDarkTheme ? Color.WHITE : Color.BLACK) : Color.WHITE);
                 int tx = x + (w - fm.stringWidth(text)) / 2;
                 int ty = y + ((height - fm.getHeight()) / 2) + fm.getAscent();
 
-                // Only render text if the segment box is physically wide enough to hold it
                 if (w > fm.stringWidth(text) + 10) {
                     g2.drawString(text, tx, ty);
                 }
 
-                // 4. Numeric time guidelines beneath the block lines
                 g2.setColor(ThemeManager.isDarkTheme ? Color.LIGHT_GRAY : Color.DARK_GRAY);
                 g2.setFont(new Font("SansSerif", Font.BOLD, 18));
 
                 String startStr = String.valueOf(b.startTick);
                 g2.drawString(startStr, x, y + height + 25);
 
-                if (i == blocks.size() - 1) { // Draw final completion time on far right edge
+                if (i == blocks.size() - 1) {
                     String endStr = String.valueOf(b.endTick);
                     int ex = x + w - g2.getFontMetrics().stringWidth(endStr);
                     g2.drawString(endStr, ex, y + height + 25);
                 }
 
-                g2.setFont(new Font("SansSerif", Font.BOLD, 24)); // Restore font for next block loop
+                g2.setFont(new Font("SansSerif", Font.BOLD, 24));
             }
         }
     }
@@ -225,4 +228,5 @@ public class SimulationView extends JPanel {
     public JButton getRestartBtn() { return restartBtn; }
     public JButton getTogglePauseBtn() { return togglePauseBtn; }
     public JButton getExitBtn() { return exitBtn; }
+    public JComboBox<String> getSpeedCombo() { return speedCombo; } // ADDED Getter
 }

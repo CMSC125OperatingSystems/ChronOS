@@ -25,6 +25,9 @@ public class AppController {
     private BaseSimulator currentSimulator;
     private List<ProcessModel> currentProcesses;
 
+    // Base simulation speed = 500ms per tick (1.0x)
+    private static final int BASE_DELAY_MS = 500;
+
     public AppController(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
         this.audioService = new AudioService();
@@ -111,10 +114,8 @@ public class AppController {
         SimulatorSetupView setup = mainFrame.getSetupView();
         SimulationView simView = mainFrame.getSimulationView();
 
-        // 1. Setup screen Back Button
         setup.getBackBtn().addActionListener(e -> mainFrame.showDashboard());
 
-        // 2. Setup screen Remove Button
         setup.getRemoveRowBtn().addActionListener(e -> {
             DefaultTableModel model = setup.getTableModel();
             int selectedRow = setup.getProcessTable().getSelectedRow();
@@ -125,10 +126,9 @@ public class AppController {
             }
 
             if (selectedRow != -1) model.removeRow(selectedRow);
-            else model.removeRow(model.getRowCount() - 1); // Remove last if nothing is selected
+            else model.removeRow(model.getRowCount() - 1);
         });
 
-        // 3. Setup screen Randomize Button
         setup.getRandomizeBtn().addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(mainFrame,
                 "Are you sure you want to randomize? This will overwrite the current table data.",
@@ -137,16 +137,14 @@ public class AppController {
             if (confirm == JOptionPane.YES_OPTION) {
                 List<ProcessModel> randProcs = GenerateRandomProcesses.generateRandom();
                 DefaultTableModel model = setup.getTableModel();
-                model.setRowCount(0); // Clear current table
+                model.setRowCount(0);
 
-                // Populate table with generated logic for user to modify
                 for (ProcessModel p : randProcs) {
                     model.addRow(new Object[]{p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority()});
                 }
             }
         });
 
-        // 4. Proceed to Simulation
         setup.getProceedBtn().addActionListener(e -> {
             if (generateAndValidateData()) {
                 mainFrame.showSimulation();
@@ -154,7 +152,6 @@ public class AppController {
             }
         });
 
-        // 5. Load File Action
         setup.getLoadFileBtn().addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             if (fileChooser.showOpenDialog(mainFrame) == JFileChooser.APPROVE_OPTION) {
@@ -163,7 +160,6 @@ public class AppController {
             }
         });
 
-        // Simulation Screen Actions
         simView.getNewBatchBtn().addActionListener(e -> {
             stopSimulationTimer();
             mainFrame.showSetup();
@@ -187,6 +183,14 @@ public class AppController {
             }
         });
 
+        // NEW: Live Speed update via JComboBox
+        simView.getSpeedCombo().addActionListener(e -> {
+            if (simulationTimer != null) {
+                int newDelay = calculateDelayFromCombo();
+                simulationTimer.setDelay(newDelay);
+            }
+        });
+
         simView.getExitBtn().addActionListener(e -> {
             stopSimulationTimer();
             mainFrame.showDashboard();
@@ -204,6 +208,13 @@ public class AppController {
             p.setWaitingTime(0);
             p.setTurnaroundTime(0);
         }
+    }
+
+    // Calculates delay based on string "1.5x", "5.0x", etc.
+    private int calculateDelayFromCombo() {
+        String selected = (String) mainFrame.getSimulationView().getSpeedCombo().getSelectedItem();
+        double multiplier = Double.parseDouble(selected.replace("x", ""));
+        return (int) (BASE_DELAY_MS / multiplier);
     }
 
     private void startSimulation() {
@@ -234,18 +245,11 @@ public class AppController {
 
         simView.getTogglePauseBtn().setText("Pause");
 
-        // Gantt Chart Frame Loop
-        simulationTimer = new Timer(500, e -> {
-            boolean hasMore = currentSimulator.executeStep();
-            simView.addGanttBlock(currentSimulator.getActiveProcessId(), currentSimulator.getCurrentTime() - 1);
+        // Start timer using whatever speed multiplier is currently selected
+        int initialDelay = calculateDelayFromCombo();
 
-            if (currentSimulator.getActiveProcessId() != null && !currentSimulator.getActiveProcessId().equals("IDLE")) {
-                for (ProcessModel p : currentProcesses) {
-                    if (p.getProcessId().equals(currentSimulator.getActiveProcessId()) && p.getRemainingTime() == 0) {
-                        simView.updateProcessStats(p);
-                    }
-                }
-            }
+        simulationTimer = new Timer(initialDelay, e -> {
+            boolean hasMore = currentSimulator.executeStep();
 
             if (!hasMore) {
                 simulationTimer.stop();
@@ -257,6 +261,17 @@ public class AppController {
                 }
                 simView.updateAverages(totalWt / currentProcesses.size(), totalTat / currentProcesses.size());
                 JOptionPane.showMessageDialog(mainFrame, "Simulation Complete!");
+                return;
+            }
+
+            simView.addGanttBlock(currentSimulator.getActiveProcessId(), currentSimulator.getCurrentTime() - 1);
+
+            if (currentSimulator.getActiveProcessId() != null && !currentSimulator.getActiveProcessId().equals("IDLE")) {
+                for (ProcessModel p : currentProcesses) {
+                    if (p.getProcessId().equals(currentSimulator.getActiveProcessId()) && p.getRemainingTime() == 0) {
+                        simView.updateProcessStats(p);
+                    }
+                }
             }
         });
         simulationTimer.start();
@@ -275,8 +290,6 @@ public class AppController {
         currentProcesses = new ArrayList<>();
         Set<Integer> priorities = new HashSet<>();
 
-        // We now ALWAYS read from the table, guaranteeing random data is evaluated exactly
-        // as the user sees it (including any manual edits they made to the random values).
         for (int i = 0; i < rowCount; i++) {
             try {
                 String id = model.getValueAt(i, 0).toString().trim();

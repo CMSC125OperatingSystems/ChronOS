@@ -36,7 +36,7 @@ public class DashboardView extends JPanel {
         iconsPanel.setOpaque(false);
 
         playButton = createIconButton("Play", "play.png");
-        howToPlayButton = createIconButton("How to Play", "htp.png");
+        howToPlayButton = createIconButton("Help", "htp.png");
         settingsButton = createIconButton("Settings", "settings.png");
 
         JPanel exitPanel = new JPanel();
