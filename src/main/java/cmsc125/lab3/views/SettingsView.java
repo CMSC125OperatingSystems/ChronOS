@@ -1,29 +1,14 @@
 package cmsc125.lab3.views;
 
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JSlider;
-import javax.swing.JSpinner;
-import javax.swing.SwingConstants;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.BoxLayout;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Component;
-import java.awt.Cursor;
+import javax.swing.*;
+import java.awt.*;
 import java.net.URL;
 
 public class SettingsView extends JPanel {
     public static final Color ENABLED_GREEN = new Color(175, 255, 175);
     public static final Color DISABLED_RED = new Color(255, 175, 175);
-    private final JButton bgmToggleBtn, sfxToggleBtn, backBtn;
+
+    private final JButton bgmToggleBtn, sfxToggleBtn, darkModeToggleBtn, backBtn;
     private final JSlider bgmSlider, sfxSlider;
     private final JSpinner bgmSpinner, sfxSpinner;
 
@@ -38,16 +23,18 @@ public class SettingsView extends JPanel {
         titleLabel.setFont(new Font("Serif", Font.BOLD, 50));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Create rows for BGM and SFX
-        JPanel bgmRow = createSettingsRow("Background Music (BGM)", true);
+        JPanel bgmRow = createSettingsRow("Background Music (BGM)");
         bgmToggleBtn = (JButton) bgmRow.getClientProperty("toggleBtn");
         bgmSlider = (JSlider) bgmRow.getClientProperty("slider");
         bgmSpinner = (JSpinner) bgmRow.getClientProperty("spinner");
 
-        JPanel sfxRow = createSettingsRow("Sound Effects (SFX)", false);
+        JPanel sfxRow = createSettingsRow("Sound Effects (SFX)");
         sfxToggleBtn = (JButton) sfxRow.getClientProperty("toggleBtn");
         sfxSlider = (JSlider) sfxRow.getClientProperty("slider");
         sfxSpinner = (JSpinner) sfxRow.getClientProperty("spinner");
+
+        JPanel darkModeRow = createToggleRow("Dark Mode Theme");
+        darkModeToggleBtn = (JButton) darkModeRow.getClientProperty("toggleBtn");
 
         centerPanel.add(Box.createVerticalGlue());
         centerPanel.add(titleLabel);
@@ -55,6 +42,8 @@ public class SettingsView extends JPanel {
         centerPanel.add(bgmRow);
         centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(sfxRow);
+        centerPanel.add(Box.createVerticalStrut(20));
+        centerPanel.add(darkModeRow);
         centerPanel.add(Box.createVerticalGlue());
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 30));
@@ -67,25 +56,22 @@ public class SettingsView extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    // Method to create aligned row for settings
-    private JPanel createSettingsRow(String labelText, boolean isBgm) {
+    private JPanel createSettingsRow(String labelText) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        row.setOpaque(false);
 
         JLabel label = new JLabel(labelText);
         label.setFont(new Font("Serif", Font.PLAIN, 20));
         label.setPreferredSize(new Dimension(250, 30));
 
-        // Toggle Button
         JButton toggleBtn = new JButton("Enabled");
         toggleBtn.setBackground(ENABLED_GREEN);
         toggleBtn.setFocusPainted(false);
         toggleBtn.setPreferredSize(new Dimension(120, 40));
 
-        // Slider (0 to 100)
         JSlider slider = new JSlider(0, 100, 100);
         slider.setPreferredSize(new Dimension(300, 40));
 
-        // Spinner (Manual number input, restricted 0-100)
         SpinnerNumberModel spinnerModel = new SpinnerNumberModel(100, 0, 100, 1);
         JSpinner spinner = new JSpinner(spinnerModel);
         spinner.setPreferredSize(new Dimension(60, 30));
@@ -95,7 +81,6 @@ public class SettingsView extends JPanel {
         row.add(slider);
         row.add(spinner);
 
-        // Store references in the panel so can extract easily
         row.putClientProperty("toggleBtn", toggleBtn);
         row.putClientProperty("slider", slider);
         row.putClientProperty("spinner", spinner);
@@ -103,9 +88,28 @@ public class SettingsView extends JPanel {
         return row;
     }
 
+    private JPanel createToggleRow(String labelText) {
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        row.setOpaque(false);
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Serif", Font.PLAIN, 20));
+        label.setPreferredSize(new Dimension(250, 30));
+
+        JButton toggleBtn = new JButton("Enabled");
+        toggleBtn.setBackground(ENABLED_GREEN);
+        toggleBtn.setFocusPainted(false);
+        toggleBtn.setPreferredSize(new Dimension(120, 40));
+
+        row.add(label);
+        row.add(toggleBtn);
+        row.putClientProperty("toggleBtn", toggleBtn);
+
+        return row;
+    }
+
     private JButton createIconButton(String labelText, String iconFileName) {
         JButton button = new JButton(labelText);
-
         button.setVerticalTextPosition(SwingConstants.BOTTOM);
         button.setHorizontalTextPosition(SwingConstants.CENTER);
         button.setFont(new Font("Serif", Font.BOLD, 18));
@@ -115,7 +119,6 @@ public class SettingsView extends JPanel {
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         URL imgURL = getClass().getResource("/icons/" + iconFileName);
-
         if (imgURL != null) {
             ImageIcon icon = new ImageIcon(imgURL);
             Image img = icon.getImage();
@@ -126,9 +129,9 @@ public class SettingsView extends JPanel {
         return button;
     }
 
-    // Getters for Controller to attach listeners
     public JButton getBgmToggleBtn() { return bgmToggleBtn; }
     public JButton getSfxToggleBtn() { return sfxToggleBtn; }
+    public JButton getDarkModeToggleBtn() { return darkModeToggleBtn; }
     public JButton getBackBtn() { return backBtn; }
     public JSlider getBgmSlider() { return bgmSlider; }
     public JSlider getSfxSlider() { return sfxSlider; }

@@ -30,14 +30,81 @@ public class AppController {
         this.audioService = new AudioService();
         this.settingsModel = new SettingsModel();
 
+        syncSettingsViewWithModel();
+
         mainFrame.getDashboardView().getPlayButton().addActionListener(e -> mainFrame.showSetup());
         mainFrame.getDashboardView().getSettingsButton().addActionListener(e -> mainFrame.showSettings());
         mainFrame.getDashboardView().getExitButton().addActionListener(e -> confirmAndExit());
 
         mainFrame.getSettingsView().getBackBtn().addActionListener(e -> mainFrame.showDashboard());
 
+        setupSettingsListeners();
         setupSimulationListeners();
         setupWindowExitListener();
+    }
+
+    private void syncSettingsViewWithModel() {
+        SettingsView settings = mainFrame.getSettingsView();
+        updateToggleButton(settings.getSfxToggleBtn(), settingsModel.isSfxEnabled());
+        settings.getSfxSlider().setValue(settingsModel.getSfxVolume());
+        settings.getSfxSpinner().setValue(settingsModel.getSfxVolume());
+
+        updateToggleButton(settings.getBgmToggleBtn(), settingsModel.isBgmEnabled());
+        settings.getBgmSlider().setValue(settingsModel.getBgmVolume());
+        settings.getBgmSpinner().setValue(settingsModel.getBgmVolume());
+
+        updateToggleButton(settings.getDarkModeToggleBtn(), settingsModel.isDarkModeEnabled());
+        ThemeManager.applyTheme(mainFrame, settingsModel.isDarkModeEnabled());
+    }
+
+    private void setupSettingsListeners() {
+        SettingsView settings = mainFrame.getSettingsView();
+
+        settings.getSfxToggleBtn().addActionListener(e -> {
+            boolean newState = !settingsModel.isSfxEnabled();
+            settingsModel.setSfxEnabled(newState);
+            updateToggleButton(settings.getSfxToggleBtn(), newState);
+            audioService.updateSfxVolume(settingsModel.getSfxVolume(), newState);
+        });
+
+        settings.getSfxSlider().addChangeListener(e -> {
+            int val = settings.getSfxSlider().getValue();
+            settingsModel.setSfxVolume(val);
+            settings.getSfxSpinner().setValue(val);
+            audioService.updateSfxVolume(val, settingsModel.isSfxEnabled());
+        });
+
+        settings.getSfxSpinner().addChangeListener(e -> {
+            int val = (Integer) settings.getSfxSpinner().getValue();
+            settingsModel.setSfxVolume(val);
+            settings.getSfxSlider().setValue(val);
+            audioService.updateSfxVolume(val, settingsModel.isSfxEnabled());
+        });
+
+        settings.getBgmToggleBtn().addActionListener(e -> {
+            boolean newState = !settingsModel.isBgmEnabled();
+            settingsModel.setBgmEnabled(newState);
+            updateToggleButton(settings.getBgmToggleBtn(), newState);
+        });
+
+        settings.getBgmSlider().addChangeListener(e -> {
+            int val = settings.getBgmSlider().getValue();
+            settingsModel.setBgmVolume(val);
+            settings.getBgmSpinner().setValue(val);
+        });
+
+        settings.getBgmSpinner().addChangeListener(e -> {
+            int val = (Integer) settings.getBgmSpinner().getValue();
+            settingsModel.setBgmVolume(val);
+            settings.getBgmSlider().setValue(val);
+        });
+
+        settings.getDarkModeToggleBtn().addActionListener(e -> {
+            boolean newState = !settingsModel.isDarkModeEnabled();
+            settingsModel.setDarkModeEnabled(newState);
+            updateToggleButton(settings.getDarkModeToggleBtn(), newState);
+            ThemeManager.applyTheme(mainFrame, newState);
+        });
     }
 
     private void setupSimulationListeners() {
@@ -110,14 +177,13 @@ public class AppController {
 
         simView.setupSimulation(method, algo, currentProcesses);
 
-        // MAP TO NEW CLASSES HERE
         if (algo.equals("First Come First Serve")) {
             currentSimulator = new FCFSSimulator(currentProcesses);
         } else if (algo.equals("Round Robin")) {
             int quantum = (Integer) setup.getQuantumSpinner().getValue();
             currentSimulator = new RoundRobinSimulator(currentProcesses, quantum);
         } else if (algo.equals("Shortest Job First (Preemptive)")) {
-            currentSimulator = new SRTSimulator(currentProcesses); // Map to SRT!
+            currentSimulator = new SRTSimulator(currentProcesses);
         } else if (algo.equals("Shortest Job First (Non-preemptive)")) {
             currentSimulator = new SJFSimulator(currentProcesses);
         } else if (algo.equals("Priority (Preemptive)")) {
@@ -133,6 +199,8 @@ public class AppController {
         // Gantt Chart Frame Loop
         simulationTimer = new Timer(500, e -> {
             boolean hasMore = currentSimulator.executeStep();
+
+            // Re-render Custom Bar Block dynamically
             simView.addGanttBlock(currentSimulator.getActiveProcessId(), currentSimulator.getCurrentTime() - 1);
 
             if (currentSimulator.getActiveProcessId() != null && !currentSimulator.getActiveProcessId().equals("IDLE")) {
@@ -209,6 +277,16 @@ public class AppController {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(mainFrame, "Error reading file: " + ex.getMessage());
+        }
+    }
+
+    private void updateToggleButton(JButton button, boolean isEnabled) {
+        if (isEnabled) {
+            button.setText("Enabled");
+            button.setBackground(SettingsView.ENABLED_GREEN);
+        } else {
+            button.setText("Disabled");
+            button.setBackground(SettingsView.DISABLED_RED);
         }
     }
 
