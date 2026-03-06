@@ -10,16 +10,10 @@ import cmsc125.lab3.models.ProcessModel;
  * This simulates the first come first served cpu scheduling algorithm
  */
 public class FCFSSimulator extends BaseSimulator{
-    PriorityQueue<ProcessModel> processQueue;
-
     public FCFSSimulator(List<ProcessModel> startingProcesses) {
         super(startingProcesses, 
             Comparator.comparingInt(ProcessModel::getArrivalTime));
         // Orders processes by who arrived first
-        processQueue = new PriorityQueue<>(
-            Comparator.comparingInt(ProcessModel::getArrivalTime)
-        );
-        processQueue.addAll(startingProcesses);
     }
 
 }
