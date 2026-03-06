@@ -40,3 +40,6 @@ build/
 
 ### direnv ###
 .direnv
+
+### random pom stuff ###
+dependency-reduced-pom.xml

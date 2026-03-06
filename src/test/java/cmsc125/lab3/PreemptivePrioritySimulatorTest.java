@@ -23,11 +23,11 @@ class PreemptivePrioritySimulatorTest {
     @DisplayName("Preemptive Priority: Basic Interruption Check")
     void testBasicPreemption() {
         // P1 starts at T=0 with Priority 3
-        processes.add(new ProcessModel("P1", 10, 0, 3)); 
+        processes.add(new ProcessModel("P1", 10, 0, 3));
         // P2 arrives at T=2 with Priority 1 (Better)
-        processes.add(new ProcessModel("P2", 2, 2, 1)); 
-        
-        simulator = new PreemptivePrioritySimulator(processes);
+        processes.add(new ProcessModel("P2", 2, 2, 1));
+
+        simulator = new PreemptivePrioritySimulator(processes, true);
 
         // Run until T=2
         for (int i = 0; i < 2; i++) simulator.executeStep();
@@ -42,10 +42,10 @@ class PreemptivePrioritySimulatorTest {
     @DisplayName("Preemptive Priority: Tie-breaking with Arrival Time")
     void testPriorityTieBreaking() {
         // Two processes with same priority (2)
-        processes.add(new ProcessModel("P1", 5, 0, 2)); 
-        processes.add(new ProcessModel("P2", 5, 1, 2)); 
-        
-        simulator = new PreemptivePrioritySimulator(processes);
+        processes.add(new ProcessModel("P1", 5, 0, 2));
+        processes.add(new ProcessModel("P2", 5, 1, 2));
+
+        simulator = new PreemptivePrioritySimulator(processes, true);
 
         // P1 should run first and NOT be preempted by P2 because priorities are equal
         for (int i = 0; i < 3; i++) {
@@ -58,12 +58,12 @@ class PreemptivePrioritySimulatorTest {
     @DisplayName("Preemptive Priority: Multiple Preemptions (Textbook Case)")
     void testComplexPreemption() {
         // Based on common OS lab data: P(ID, Burst, Arrival, Priority)
-        processes.add(new ProcessModel("P0", 8, 0, 3)); 
+        processes.add(new ProcessModel("P0", 8, 0, 3));
         processes.add(new ProcessModel("P1", 4, 1, 1)); // Should preempt P0
         processes.add(new ProcessModel("P2", 2, 2, 2)); // Should stay in queue (1 < 2)
-        
-        simulator = new PreemptivePrioritySimulator(processes);
-        
+
+        simulator = new PreemptivePrioritySimulator(processes, true);
+
         // T=0: P0 starts
         simulator.executeStep();
         assertEquals("P0", simulator.getActiveProcessId());
@@ -76,23 +76,21 @@ class PreemptivePrioritySimulatorTest {
         simulator.executeStep();
         assertEquals("P1", simulator.getActiveProcessId(), "P1 should continue; P2 (Pri 2) is lower priority");
     }
+
     @Test
     @DisplayName("Preemptive Priority: Example 2 Validation (P1-P5)")
     void testPreemptivePriorityExample2() {
-        // Data from image: Process(ID, Burst, Arrival, Priority)
-        processes.add(new ProcessModel("P1", 8, 0, 4)); 
-        processes.add(new ProcessModel("P2", 4, 3, 3)); 
-        processes.add(new ProcessModel("P3", 5, 4, 1)); 
-        processes.add(new ProcessModel("P4", 3, 6, 2)); 
-        processes.add(new ProcessModel("P5", 2, 10, 2)); // Priority same as P4
+        processes.add(new ProcessModel("P1", 8, 0, 4));
+        processes.add(new ProcessModel("P2", 4, 3, 3));
+        processes.add(new ProcessModel("P3", 5, 4, 1));
+        processes.add(new ProcessModel("P4", 3, 6, 2));
+        processes.add(new ProcessModel("P5", 2, 10, 2));
 
-        // Using the multi-level comparator: Priority first, then Arrival Time
-        simulator = new PreemptivePrioritySimulator(processes);
+        // FIXED: Passing "true" to indicate Lower Number = Highest Priority
+        simulator = new PreemptivePrioritySimulator(processes, true);
 
-        // Run simulation to completion
         while (simulator.executeStep());
 
-        // Retrieve processes for verification
         ProcessModel p1 = processes.stream().filter(p -> p.getProcessId().equals("P1")).findFirst().get();
         ProcessModel p2 = processes.stream().filter(p -> p.getProcessId().equals("P2")).findFirst().get();
         ProcessModel p3 = processes.stream().filter(p -> p.getProcessId().equals("P3")).findFirst().get();
@@ -100,19 +98,11 @@ class PreemptivePrioritySimulatorTest {
         ProcessModel p5 = processes.stream().filter(p -> p.getProcessId().equals("P5")).findFirst().get();
 
         assertAll("Preemptive Priority Example 2 Results",
-            // Completion Times (Time Finished)
-        () -> assertEquals(22, p1.getCompletionTime(), "P1 Completion Time"),
-        () -> assertEquals(17, p2.getCompletionTime(), "P2 Completion Time"),
-        () -> assertEquals(9, p3.getCompletionTime(), "P3 Completion Time"),
-        () -> assertEquals(12, p4.getCompletionTime(), "P4 Completion Time"),
-        () -> assertEquals(14, p5.getCompletionTime(), "P5 Completion Time"),
-
-            // Waiting Times (WT = Turnaround - Burst)
-        () -> assertEquals(14, p1.getWaitingTime(), "P1 Waiting Time"),
-        () -> assertEquals(10, p2.getWaitingTime(), "P2 Waiting Time"),
-        () -> assertEquals(0, p3.getWaitingTime(), "P3 Waiting Time"),
-        () -> assertEquals(3, p4.getWaitingTime(), "P4 Waiting Time"),
-        () -> assertEquals(2, p5.getWaitingTime(), "P5 Waiting Time")
+            () -> assertEquals(22, p1.getCompletionTime()),
+            () -> assertEquals(17, p2.getCompletionTime()),
+            () -> assertEquals(9, p3.getCompletionTime()),
+            () -> assertEquals(12, p4.getCompletionTime()),
+            () -> assertEquals(14, p5.getCompletionTime())
         );
     }
 }

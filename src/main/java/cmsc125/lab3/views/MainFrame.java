@@ -5,50 +5,49 @@ import javax.swing.JPanel;
 import java.awt.CardLayout;
 
 public class MainFrame extends JFrame {
-    // Constants for CardLayout routing
-    private static final String VIEW_SPLASH = "SPLASH";
-    private static final String VIEW_DASHBOARD = "DASHBOARD";
-    private static final String VIEW_SETTINGS = "SETTINGS";
-
     private final CardLayout cardLayout;
     private final JPanel cardPanel;
 
-    // Views references so controller can access them
     private final SplashView splashView;
     private final DashboardView dashboardView;
     private final SettingsView settingsView;
+    private final SimulatorSetupView setupView;
+    private final SimulationView simulationView;
 
     public MainFrame() {
         setTitle("ChronOS");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Open in full screen
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-        // Set up CardLayout for panel swaps
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        // Instantiate Panel Views
         splashView = new SplashView();
         dashboardView = new DashboardView();
         settingsView = new SettingsView();
+        setupView = new SimulatorSetupView();
+        simulationView = new SimulationView();
 
-        cardPanel.add(splashView, VIEW_SPLASH);
-        cardPanel.add(dashboardView, VIEW_DASHBOARD);
-        cardPanel.add(settingsView, VIEW_SETTINGS);
+        cardPanel.add(splashView, "SPLASH");
+        cardPanel.add(dashboardView, "DASHBOARD");
+        cardPanel.add(settingsView, "SETTINGS");
+        cardPanel.add(setupView, "SETUP");
+        cardPanel.add(simulationView, "SIMULATION");
 
         add(cardPanel);
     }
 
-    // Method called by Controller to switch to Dashboard
     public void showDashboard() {
-        cardLayout.show(cardPanel, VIEW_DASHBOARD);
+        cardLayout.show(cardPanel, "DASHBOARD");
         splashView.stopAnimation();
     }
 
-    public void showSettings() {
-        cardLayout.show(cardPanel, VIEW_SETTINGS);
-    }
+    public void showSettings() { cardLayout.show(cardPanel, "SETTINGS"); }
+    public void showSetup() { cardLayout.show(cardPanel, "SETUP"); }
+    public void showSimulation() { cardLayout.show(cardPanel, "SIMULATION"); }
 
     public DashboardView getDashboardView() { return dashboardView; }
     public SettingsView getSettingsView() { return settingsView; }
+    public SimulatorSetupView getSetupView() { return setupView; }
+    public SimulationView getSimulationView() { return simulationView; }
 }
