@@ -35,7 +35,14 @@ public class SimulationView extends JPanel {
 
         JPanel centerPanel = new JPanel(new BorderLayout());
         String[] cols = {"Process ID", "Burst Time", "Arrival Time", "Priority", "Waiting Time", "Turnaround Time"};
-        resultTableModel = new DefaultTableModel(cols, 0);
+
+        // OVERRIDE isCellEditable to make the table read-only
+        resultTableModel = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
         JTable resultTable = new JTable(resultTableModel);
         resultTable.setFont(new Font("SansSerif", Font.PLAIN, 18));

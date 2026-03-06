@@ -131,15 +131,19 @@ public class AppController {
 
         // Randomize entries
         setup.getRandomizeBtn().addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(mainFrame, "Are you sure you want to randomize? This will overwrite the current table data.", "Confirm Randomize", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(mainFrame, "Randomize data? This overwrites current inputs.", "Confirm", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
-                List<ProcessModel> randProcs = GenerateRandomProcesses.generateRandom();
                 DefaultTableModel model = setup.getTableModel();
-                model.setRowCount(0);
+                int currentRowCount = model.getRowCount();
 
-                for (ProcessModel p : randProcs) {
-                    model.addRow(new Object[]{p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority()});
+                List<ProcessModel> randProcs = GenerateRandomProcesses.generateRandom(currentRowCount);
+
+                for (int i = 0; i < currentRowCount; i++) {
+                    ProcessModel p = randProcs.get(i);
+                    model.setValueAt(p.getBurstTime(), i, 1);
+                    model.setValueAt(p.getArrivalTime(), i, 2);
+                    model.setValueAt(p.getPriority(), i, 3);
                 }
             }
         });
