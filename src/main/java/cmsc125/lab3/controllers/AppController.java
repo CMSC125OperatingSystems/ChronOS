@@ -420,14 +420,6 @@ public class AppController {
                 }
 
                 currentProcesses.add(new ProcessModel(id, burst, arrival, priority));
-
-                if (burst < 1 || burst > 30) throw new Exception("Burst time must be 1-30.");
-                if (arrival < 0 || arrival > 30) throw new Exception("Arrival time must be 0-30.");
-                if (priority < 1 || priority > 20) throw new Exception("Priority must be 1-20.");
-
-                if (!priorities.add(priority)) throw new Exception("Priority duplicate found: " + priority);
-
-                currentProcesses.add(new ProcessModel(id, burst, arrival, priority));
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(mainFrame, "Row " + (i + 1) + " invalid: " + ex.getMessage());
                 return false;

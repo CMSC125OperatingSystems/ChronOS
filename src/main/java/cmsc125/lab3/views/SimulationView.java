@@ -60,32 +60,23 @@ public class SimulationView extends JPanel {
         }
 
         centerPanel.add(new JScrollPane(resultTable), BorderLayout.CENTER);
-        centerPanel.add(Box.createHorizontalStrut(50), BorderLayout.WEST); // 50px left margin
-        centerPanel.add(Box.createHorizontalStrut(50), BorderLayout.EAST); // 50px right margin
+        centerPanel.add(Box.createHorizontalStrut(50), BorderLayout.WEST);
+        centerPanel.add(Box.createHorizontalStrut(50), BorderLayout.EAST);
 
-        // Inside the SimulationView constructor, after initializing resultTable:
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 
-        // Apply to all columns
         for (int i = 0; i < resultTable.getColumnCount(); i++) {
             resultTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // Ensure the font is consistent
-        resultTable.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        resultTable.setRowHeight(35);
-
-        JPanel avgPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 30, 10));
-        avgWtLabel = new JLabel("Average Waiting Time: 0.00");
-        avgTatLabel = new JLabel("Average Turnaround Time: 0.00");
-        avgWtLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-        avgTatLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-        avgPanel.add(avgWtLabel);
-        avgPanel.add(avgTatLabel);
-        centerPanel.add(avgPanel, BorderLayout.SOUTH);
+        resultTable.setFont(new Font("SansSerif", Font.PLAIN, 20));
+        resultTable.setRowHeight(40);
 
         add(centerPanel, BorderLayout.CENTER);
+
+        avgWtLabel = new JLabel();
+        avgTatLabel = new JLabel();
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
 
@@ -206,20 +197,17 @@ public class SimulationView extends JPanel {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-public void updateAverages(double avgWt, double avgTat) {
-    String wtStr = String.format("%.2f", avgWt);
-    String tatStr = String.format("%.2f", avgTat);
+    public void updateAverages(double avgWt, double avgTat) {
+        String wtStr = String.format("%.2f", avgWt);
+        String tatStr = String.format("%.2f", avgTat);
 
-    // Update the bottom labels as you already do
-    avgWtLabel.setText("Average Waiting Time: " + wtStr);
-    avgTatLabel.setText("Average Turnaround Time: " + tatStr);
-
-    // Update every row in the table to have the same average value
-    for (int i = 0; i < resultTableModel.getRowCount(); i++) {
-        resultTableModel.setValueAt(wtStr, i, 6); // Column 6: AWT
-        resultTableModel.setValueAt(tatStr, i, 7); // Column 7: ATT
+        // Update every row in the table to have the same average value
+        for (int i = 0; i < resultTableModel.getRowCount(); i++) {
+            resultTableModel.setValueAt(wtStr, i, 6); // Column 6: AWT
+            resultTableModel.setValueAt(tatStr, i, 7); // Column 7: ATT
+        }
     }
-}
+
     class GanttChartPanel extends JPanel {
         class GanttBlock {
             String processId;
