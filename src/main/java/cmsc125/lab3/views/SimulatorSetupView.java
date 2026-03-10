@@ -54,6 +54,17 @@ public class SimulatorSetupView extends JPanel {
 
         quantumSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
         quantumSpinner.setFont(comboFont);
+        // Access the editor component of the spinner
+        JComponent editor = quantumSpinner.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor) {
+            // Cast to DefaultEditor to get the text field
+            JTextField textField = ((JSpinner.DefaultEditor) editor).getTextField();
+            // Disable direct keyboard input
+            textField.setEditable(false);
+            textField.setFocusable(false);
+            // Optional: Keep the background color consistent with your theme
+            textField.setBackground(UIManager.getColor("Panel.background"));
+        }
 
         priorityOrderCombo = new JComboBox<>(new String[]{"Lower Number = High Priority", "Higher Number = High Priority"});
         priorityOrderCombo.setFont(comboFont);
