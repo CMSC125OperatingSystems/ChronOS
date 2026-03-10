@@ -258,6 +258,38 @@ public class AppController {
                 mainFrame.showDashboard();
             }
         });
+
+        setup.getTableModel().addTableModelListener(e -> {
+            if (e.getType() == javax.swing.event.TableModelEvent.UPDATE) {
+                int row = e.getFirstRow();
+                int col = e.getColumn();
+                if (col < 1) return;
+
+                DefaultTableModel model = setup.getTableModel();
+                String valStr = model.getValueAt(row, col).toString().trim();
+                if (valStr.isEmpty()) return;
+
+                try {
+                    int val = Integer.parseInt(valStr);
+                    String error = null;
+
+                    String algo = (String) setup.getAlgorithmCombo().getSelectedItem();
+                    boolean isPriorityAlgo = algo != null && algo.toLowerCase().contains("priority");
+
+                    if (col == 1 && (val < 1 || val > 30)) error = "Burst Time must be 1-30.";
+                    else if (col == 2 && (val < 0 || val > 30)) error = "Arrival Time must be 0-30.";
+                    else if (col == 3 && isPriorityAlgo && (val < 1 || val > 20)) error = "Priority must be 1-20.";
+
+                    if (error != null) {
+                        JOptionPane.showMessageDialog(mainFrame, error, "Input Error", JOptionPane.ERROR_MESSAGE);
+                        SwingUtilities.invokeLater(() -> model.setValueAt("", row, col));
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(mainFrame, "Please enter a valid number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    SwingUtilities.invokeLater(() -> model.setValueAt("", row, col));
+                }
+            }
+        });
     }
 
     private void stopSimulationTimer() {
@@ -372,7 +404,22 @@ public class AppController {
 
                 int burst = Integer.parseInt(burstStr);
                 int arrival = Integer.parseInt(arrivalStr);
-                int priority = Integer.parseInt(priorityStr);
+                String algo = (String) setup.getAlgorithmCombo().getSelectedItem();
+                boolean isPriorityAlgo = algo != null && algo.toLowerCase().contains("priority");
+                int priority = 1;
+
+                if (!priorityStr.isEmpty()) priority = Integer.parseInt(priorityStr);
+
+                if (burst < 1 || burst > 30) throw new Exception("Burst time must be 1-30.");
+                if (arrival < 0 || arrival > 30) throw new Exception("Arrival time must be 0-30.");
+
+
+                if (isPriorityAlgo) {
+                    if (priority < 1 || priority > 20) throw new Exception("Priority must be 1-20.");
+                    if (!priorities.add(priority)) throw new Exception("Priority duplicate found: " + priority);
+                }
+
+                currentProcesses.add(new ProcessModel(id, burst, arrival, priority));
 
                 if (burst < 1 || burst > 30) throw new Exception("Burst time must be 1-30.");
                 if (arrival < 0 || arrival > 30) throw new Exception("Arrival time must be 0-30.");

@@ -91,7 +91,13 @@ public class SimulatorSetupView extends JPanel {
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return generationMethodCombo.getSelectedIndex() == 0 && column != 0;
+                if (generationMethodCombo.getSelectedIndex() != 0) return false;
+                if (column == 0) return false;
+                if (column == 3) {
+                    String algo = (String) algorithmCombo.getSelectedItem();
+                    return algo != null && algo.toLowerCase().contains("priority");
+                }
+                return true;
             }
         };
 
