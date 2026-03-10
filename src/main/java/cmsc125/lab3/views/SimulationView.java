@@ -182,6 +182,12 @@ public class SimulationView extends JPanel {
         }
     }
 
+    private String formatToMMSS(int totalSeconds) {
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
 public void updateAverages(double avgWt, double avgTat) {
     String wtStr = String.format("%.2f", avgWt);
     String tatStr = String.format("%.2f", avgTat);
@@ -274,9 +280,8 @@ public void updateAverages(double avgWt, double avgTat) {
 
                 g2.setColor(ThemeManager.isDarkTheme ? Color.LIGHT_GRAY : Color.DARK_GRAY);
                 g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
-                String startStr = String.valueOf(b.startTick);
+                String startStr = formatToMMSS(b.startTick); 
                 g2.drawString(startStr, x, y + BAR_HEIGHT + 15);
-
                 g2.setFont(new Font("SansSerif", Font.BOLD, 20));
             }
 
@@ -300,7 +305,7 @@ public void updateAverages(double avgWt, double avgTat) {
             if (totalTime > 0) {
                 g2.setColor(ThemeManager.isDarkTheme ? Color.LIGHT_GRAY : Color.DARK_GRAY);
                 g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
-                String endStr = String.valueOf(totalTime);
+                String endStr = formatToMMSS(totalTime);
                 int ex = (totalTime * PIXELS_PER_TICK);
                 g2.drawString(endStr, ex, y + BAR_HEIGHT + 15);
             }

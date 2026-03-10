@@ -114,7 +114,6 @@ public class SimulatorSetupView extends JPanel {
         processTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 18));
         processTable.setRowHeight(35); // Adjust height to fit the 18pt font
         
-        centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 
         // Loop through all columns and apply the centering
