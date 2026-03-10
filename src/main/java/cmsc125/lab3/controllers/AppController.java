@@ -106,24 +106,6 @@ public class AppController {
             audioService.updateSfxVolume(val, settingsModel.isSfxEnabled());
         });
 
-        settings.getBgmToggleBtn().addActionListener(e -> {
-            boolean newState = !settingsModel.isBgmEnabled();
-            settingsModel.setBgmEnabled(newState);
-            updateToggleButton(settings.getBgmToggleBtn(), newState);
-        });
-
-        settings.getBgmSlider().addChangeListener(e -> {
-            int val = settings.getBgmSlider().getValue();
-            settingsModel.setBgmVolume(val);
-            settings.getBgmSpinner().setValue(val);
-        });
-
-        settings.getBgmSpinner().addChangeListener(e -> {
-            int val = (Integer) settings.getBgmSpinner().getValue();
-            settingsModel.setBgmVolume(val);
-            settings.getBgmSlider().setValue(val);
-        });
-
         settings.getDarkModeToggleBtn().addActionListener(e -> {
             boolean newState = !settingsModel.isDarkModeEnabled();
             settingsModel.setDarkModeEnabled(newState);
