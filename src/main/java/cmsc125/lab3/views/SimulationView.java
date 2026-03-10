@@ -155,24 +155,24 @@ public class SimulationView extends JPanel {
         processColors.clear();
         ganttChartPanel.reset();
 
-        // int cIdx = 0;
-        // for (ProcessModel p : processes) {
-        //     resultTableModel.addRow(new Object[]{ p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority(), "", "" });
-        //     processColors.put(p.getProcessId(), palette[cIdx % palette.length]);
-        //     cIdx++;
-        // }
-
         int cIdx = 0;
         for (ProcessModel p : processes) {
-            resultTableModel.addRow(new Object[]{ 
-                p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority(), 
-                "", "", "0.00", "0.00" // New AWT and ATT placeholders
-            });
+            resultTableModel.addRow(new Object[]{ p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority(), "", "" });
             processColors.put(p.getProcessId(), palette[cIdx % palette.length]);
             cIdx++;
         }
 
-        timeLabel.setText("Time: 00:00");
+        // int cIdx = 0;
+        // for (ProcessModel p : processes) {
+        //     resultTableModel.addRow(new Object[]{ 
+        //         p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority(), 
+        //         "", "", "0.00", "0.00" // New AWT and ATT placeholders
+        //     });
+        //     processColors.put(p.getProcessId(), palette[cIdx % palette.length]);
+        //     cIdx++;
+        // }
+
+        timeLabel.setText("Time: 00");
         avgWtLabel.setText("Average Waiting Time: 0.00");
         avgTatLabel.setText("Average Turnaround Time: 0.00");
     }
@@ -183,8 +183,7 @@ public class SimulationView extends JPanel {
             processColors.getOrDefault(processId, Color.GRAY);
 
         ganttChartPanel.addTick(processId == null ? "IDLE" : processId, tick, color);
-        timeLabel.setText(String.format("Time: %02d:%02d", (tick+1) / 60, (tick+1) % 60));
-
+        timeLabel.setText(String.format("Time: %d", tick + 1));
         SwingUtilities.invokeLater(() -> {
             JScrollBar horizontal = ganttScrollPane.getHorizontalScrollBar();
             horizontal.setValue(horizontal.getMaximum());
