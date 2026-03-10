@@ -94,6 +94,8 @@ public class SimulatorSetupView extends JPanel {
         processTable = new JTable(tableModel);
         processTable.setRowHeight(30);
         add(new JScrollPane(processTable), BorderLayout.CENTER);
+        add(Box.createHorizontalStrut(50), BorderLayout.WEST); // 50px left margin
+        add(Box.createHorizontalStrut(50), BorderLayout.EAST); // 50px right margin
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 15));
         addRowBtn = new JButton("+ Add Process");
