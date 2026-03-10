@@ -258,35 +258,6 @@ public class AppController {
                 mainFrame.showDashboard();
             }
         });
-
-        setup.getTableModel().addTableModelListener(e -> {
-            if (e.getType() == javax.swing.event.TableModelEvent.UPDATE) {
-                int row = e.getFirstRow();
-                int col = e.getColumn();
-                if (col < 1) return;
-
-                DefaultTableModel model = setup.getTableModel();
-                String valStr = model.getValueAt(row, col).toString().trim();
-                if (valStr.isEmpty()) return;
-
-                try {
-                    int val = Integer.parseInt(valStr);
-                    String error = null;
-
-                    if (col == 1 && (val < 1 || val > 30)) error = "Burst Time must be 1-30.";
-                    else if (col == 2 && (val < 0 || val > 30)) error = "Arrival Time must be 0-30.";
-                    else if (col == 3 && (val < 1 || val > 20)) error = "Priority must be 1-20.";
-
-                    if (error != null) {
-                        JOptionPane.showMessageDialog(mainFrame, error, "Input Error", JOptionPane.ERROR_MESSAGE);
-                        SwingUtilities.invokeLater(() -> model.setValueAt("", row, col));
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(mainFrame, "Please enter a valid number.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                    SwingUtilities.invokeLater(() -> model.setValueAt("", row, col));
-                }
-            }
-        });
     }
 
     private void stopSimulationTimer() {
