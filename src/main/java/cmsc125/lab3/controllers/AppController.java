@@ -7,6 +7,7 @@ import cmsc125.lab3.views.*;
 
 import javax.swing.*;
 import javax.swing.Timer;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -184,7 +185,13 @@ public class AppController {
 
         // Load file
         setup.getLoadFileBtn().addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
+            // Pass the current working directory to the constructor
+            JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
+
+            // Optional: Add a file filter so it only shows specific files (like .txt or .csv)
+             FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "txt");
+             fileChooser.setFileFilter(filter);
+
             if (fileChooser.showOpenDialog(mainFrame) == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
                 loadProcessesFromFile(file);

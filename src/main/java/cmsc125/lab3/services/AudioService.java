@@ -63,11 +63,7 @@ public class AudioService {
             // Set volume
             setClipVolume(currentBgmClip, volumeLevel);
 
-            // Set to Loop
-            currentBgmClip.loop(Clip.LOOP_CONTINUOUSLY);
-
-            // Only start playing if enabled
-            if (isEnabled) currentBgmClip.start();
+            if (isEnabled) currentBgmClip.loop(Clip.LOOP_CONTINUOUSLY);
 
         } catch (Exception e) {
             System.err.println("Error playing BGM: " + e.getMessage());
