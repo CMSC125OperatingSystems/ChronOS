@@ -6,6 +6,7 @@ import cmsc125.lab3.services.ThemeManager;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +19,9 @@ public class SimulationView extends JPanel {
     private final GanttChartPanel ganttChartPanel;
     private final JScrollPane ganttScrollPane;
     private final JButton newBatchBtn, restartBtn, togglePauseBtn, exitBtn;
-    private final JComboBox<String> speedCombo; // NEW: Speed controller
+    private final JComboBox<String> speedCombo;
+    private TableColumn priorityColumnRes;
+    private JTable resultTable;
 
     private final Map<String, Color> processColors = new HashMap<>();
     private final Color[] palette = {
@@ -128,9 +131,25 @@ public class SimulationView extends JPanel {
 
         bottomPanel.add(controlsPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
+
+        // Fix 9: Store priority column for the results table
+        priorityColumnRes = resultTable.getColumnModel().getColumn(3);
+        this.resultTable = resultTable;
     }
 
     public void setupSimulation(String method, String algorithm, List<ProcessModel> processes) {
+        boolean isPriority = algorithm != null && algorithm.toLowerCase().contains("priority");
+
+        if (!isPriority) {
+            try { resultTable.removeColumn(priorityColumnRes); } catch (Exception ignored) {}
+        } else {
+            try {
+                resultTable.removeColumn(priorityColumnRes);
+                resultTable.addColumn(priorityColumnRes);
+                resultTable.moveColumn(resultTable.getColumnCount() - 1, 3);
+            } catch (Exception ignored) {}
+        }
+
         infoLabel.setText(method + "   |   " + algorithm);
         resultTableModel.setRowCount(0);
         processColors.clear();

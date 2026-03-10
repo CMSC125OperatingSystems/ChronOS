@@ -138,12 +138,32 @@ public class SimulatorSetupView extends JPanel {
         bottomPanel.add(proceedBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
+        priorityColumn = processTable.getColumnModel().getColumn(3);
+
         for (int i = 1; i <= 3; i++) tableModel.addRow(new Object[]{"P" + i, "", "", ""});
         setupListeners();
+        updatePriorityColumnVisibility();
+    }
+
+    private javax.swing.table.TableColumn priorityColumn;
+    private void updatePriorityColumnVisibility() {
+        String algo = (String) algorithmCombo.getSelectedItem();
+        boolean isPriority = algo != null && algo.toLowerCase().contains("priority");
+
+        if (!isPriority) {
+            try { processTable.removeColumn(priorityColumn); } catch (Exception ignored) {}
+        } else {
+            try {
+                processTable.removeColumn(priorityColumn); // Ensure no duplicates
+                processTable.addColumn(priorityColumn);
+                processTable.moveColumn(processTable.getColumnCount() - 1, 3); // Move back to original spot
+            } catch (Exception ignored) {}
+        }
     }
 
     private void setupListeners() {
         algorithmCombo.addActionListener(e -> {
+            updatePriorityColumnVisibility();
             dynamicOptionsPanel.removeAll();
             String algo = (String) algorithmCombo.getSelectedItem();
 
