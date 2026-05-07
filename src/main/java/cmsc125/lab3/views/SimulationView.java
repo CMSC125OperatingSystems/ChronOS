@@ -14,19 +14,19 @@ import java.util.List;
 import java.util.Map;
 
 public class SimulationView extends JPanel {
-    private final JLabel infoLabel, timeLabel, avgWtLabel, avgTatLabel;
+    private final JLabel infoLabel, timeLabel;
     private final DefaultTableModel resultTableModel;
     private final GanttChartPanel ganttChartPanel;
     private final JScrollPane ganttScrollPane;
     private final JButton newBatchBtn, restartBtn, togglePauseBtn, exitBtn;
     private final JComboBox<String> speedCombo;
-    private TableColumn priorityColumnRes;
-    private JTable resultTable;
+    private final TableColumn priorityColumnRes;
+    private final JTable resultTable;
 
     private final Map<String, Color> processColors = new HashMap<>();
     private final Color[] palette = {
-        Color.RED, Color.BLUE, new Color(0, 150, 0), Color.ORANGE, Color.MAGENTA, new Color(34, 139, 34),
-        new Color(255, 105, 180), new Color(150, 150, 0), new Color(128, 0, 128), new Color(0, 128, 128)
+            Color.RED, Color.BLUE, new Color(0, 150, 0), Color.ORANGE, Color.MAGENTA, new Color(34, 139, 34),
+            new Color(255, 105, 180), new Color(150, 150, 0), new Color(128, 0, 128), new Color(0, 128, 128)
     };
 
     public SimulationView() {
@@ -40,7 +40,6 @@ public class SimulationView extends JPanel {
         JPanel centerPanel = new JPanel(new BorderLayout());
         String[] cols = {"Process ID", "Burst Time", "Arrival Time", "Priority", "Waiting Time", "Turnaround Time", "AWT", "ATT"};
 
-        // OVERRIDE isCellEditable to make the table read-only
         resultTableModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -48,35 +47,25 @@ public class SimulationView extends JPanel {
             }
         };
 
-        JTable resultTable = new JTable(resultTableModel);
-        resultTable.setFont(new Font("SansSerif", Font.PLAIN, 22));
-        resultTable.setRowHeight(45);
+        resultTable = new JTable(resultTableModel);
+        resultTable.setFont(new Font("SansSerif", Font.PLAIN, 20));
+        resultTable.setRowHeight(40);
         resultTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 22));
 
-        javax.swing.table.DefaultTableCellRenderer resCenterRenderer = new javax.swing.table.DefaultTableCellRenderer();
-        resCenterRenderer.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         for (int i = 0; i < resultTable.getColumnCount(); i++) {
-            resultTable.getColumnModel().getColumn(i).setCellRenderer(resCenterRenderer);
+            resultTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
         centerPanel.add(new JScrollPane(resultTable), BorderLayout.CENTER);
         centerPanel.add(Box.createHorizontalStrut(50), BorderLayout.WEST);
         centerPanel.add(Box.createHorizontalStrut(50), BorderLayout.EAST);
 
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-
-        for (int i = 0; i < resultTable.getColumnCount(); i++) {
-            resultTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
-
-        resultTable.setFont(new Font("SansSerif", Font.PLAIN, 20));
-        resultTable.setRowHeight(40);
-
         add(centerPanel, BorderLayout.CENTER);
 
-        avgWtLabel = new JLabel();
-        avgTatLabel = new JLabel();
+        JLabel avgWtLabel = new JLabel();
+        JLabel avgTatLabel = new JLabel();
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
 
@@ -123,9 +112,7 @@ public class SimulationView extends JPanel {
         bottomPanel.add(controlsPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Fix 9: Store priority column for the results table
         priorityColumnRes = resultTable.getColumnModel().getColumn(3);
-        this.resultTable = resultTable;
     }
 
     public void setupSimulation(String method, String algorithm, List<ProcessModel> processes) {
@@ -148,33 +135,24 @@ public class SimulationView extends JPanel {
 
         int cIdx = 0;
         for (ProcessModel p : processes) {
-            resultTableModel.addRow(new Object[]{ p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority(), "", "" });
+            resultTableModel.addRow(new Object[]{
+                    p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority(),
+                    "", "", "0.00", "0.00"
+            });
             processColors.put(p.getProcessId(), palette[cIdx % palette.length]);
             cIdx++;
         }
 
-        // int cIdx = 0;
-        // for (ProcessModel p : processes) {
-        //     resultTableModel.addRow(new Object[]{ 
-        //         p.getProcessId(), p.getBurstTime(), p.getArrivalTime(), p.getPriority(), 
-        //         "", "", "0.00", "0.00" // New AWT and ATT placeholders
-        //     });
-        //     processColors.put(p.getProcessId(), palette[cIdx % palette.length]);
-        //     cIdx++;
-        // }
-
-        timeLabel.setText("Time: 00");
-        avgWtLabel.setText("Average Waiting Time: 0.00");
-        avgTatLabel.setText("Average Turnaround Time: 0.00");
+        timeLabel.setText("Time: 00:00");
     }
 
     public void addGanttBlock(String processId, int tick) {
         Color color = (processId == null || processId.equals("IDLE")) ?
-            (ThemeManager.isDarkTheme ? Color.DARK_GRAY : Color.LIGHT_GRAY) :
-            processColors.getOrDefault(processId, Color.GRAY);
+                (ThemeManager.isDarkTheme ? Color.DARK_GRAY : Color.LIGHT_GRAY) :
+                processColors.getOrDefault(processId, Color.GRAY);
 
         ganttChartPanel.addTick(processId == null ? "IDLE" : processId, tick, color);
-        timeLabel.setText(String.format("Time: %d", tick + 1));
+        timeLabel.setText(String.format("Time: %s", formatToMMSS(tick + 1)));
         SwingUtilities.invokeLater(() -> {
             JScrollBar horizontal = ganttScrollPane.getHorizontalScrollBar();
             horizontal.setValue(horizontal.getMaximum());
@@ -201,10 +179,10 @@ public class SimulationView extends JPanel {
         String wtStr = String.format("%.2f", avgWt);
         String tatStr = String.format("%.2f", avgTat);
 
-        // Update every row in the table to have the same average value
+
         for (int i = 0; i < resultTableModel.getRowCount(); i++) {
-            resultTableModel.setValueAt(wtStr, i, 6); // Column 6: AWT
-            resultTableModel.setValueAt(tatStr, i, 7); // Column 7: ATT
+            resultTableModel.setValueAt(wtStr, i, 6);
+            resultTableModel.setValueAt(tatStr, i, 7);
         }
     }
 
@@ -260,7 +238,6 @@ public class SimulationView extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             int y = 20;
-
             g2.setFont(new Font("SansSerif", Font.BOLD, 20));
             FontMetrics fm = g2.getFontMetrics();
 
@@ -276,8 +253,15 @@ public class SimulationView extends JPanel {
                 g2.drawRect(x, y, w, BAR_HEIGHT);
 
                 String text = b.processId.equals("IDLE") ? "-" : b.processId;
-                g2.setColor(b.processId.equals("IDLE") ? (ThemeManager.isDarkTheme ? Color.WHITE : Color.BLACK) : Color.WHITE);
 
+                double brightness = (b.color.getRed() * 0.299) + (b.color.getGreen() * 0.587) + (b.color.getBlue() * 0.114);
+                Color textColor = (brightness < 128) ? Color.WHITE : Color.BLACK;
+
+                if (b.processId.equals("IDLE")) {
+                    textColor = ThemeManager.isDarkTheme ? Color.WHITE : Color.BLACK;
+                }
+
+                g2.setColor(textColor);
                 if (w > fm.stringWidth(text) + 5) {
                     int tx = x + (w - fm.stringWidth(text)) / 2;
                     int ty = y + ((BAR_HEIGHT - fm.getHeight()) / 2) + fm.getAscent();
@@ -286,34 +270,14 @@ public class SimulationView extends JPanel {
 
                 g2.setColor(ThemeManager.isDarkTheme ? Color.LIGHT_GRAY : Color.DARK_GRAY);
                 g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
-                String startStr = formatToMMSS(b.startTick); 
-                g2.drawString(startStr, x, y + BAR_HEIGHT + 15);
+                g2.drawString(formatToMMSS(b.startTick), x, y + BAR_HEIGHT + 15);
                 g2.setFont(new Font("SansSerif", Font.BOLD, 20));
-            }
-
-            // Inside GanttChartPanel.paintComponent
-            for (GanttBlock b : blocks) {
-                // ... (previous fillRect and drawRect code)
-
-                // Calculate perceived brightness to determine text color
-                double brightness = (b.color.getRed() * 0.299) + (b.color.getGreen() * 0.587) + (b.color.getBlue() * 0.114);
-                Color textColor = (brightness < 128) ? Color.WHITE : Color.BLACK;
-
-                // Use the IDLE color logic for IDLE blocks
-                if (b.processId.equals("IDLE")) {
-                    textColor = ThemeManager.isDarkTheme ? Color.WHITE : Color.BLACK;
-                }
-
-                g2.setColor(textColor);
-                // ... (draw the string using the calculated textColor)
             }
 
             if (totalTime > 0) {
                 g2.setColor(ThemeManager.isDarkTheme ? Color.LIGHT_GRAY : Color.DARK_GRAY);
                 g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
-                String endStr = formatToMMSS(totalTime);
-                int ex = (totalTime * PIXELS_PER_TICK);
-                g2.drawString(endStr, ex, y + BAR_HEIGHT + 15);
+                g2.drawString(formatToMMSS(totalTime), totalTime * PIXELS_PER_TICK, y + BAR_HEIGHT + 15);
             }
         }
     }
