@@ -9,12 +9,10 @@ import java.net.URL;
 public class AudioService {
     private Clip currentSfxClip, currentBgmClip;
 
-    // Play file as SFX, applying current volume and mute settings
     public void playSFX(String filePath, int volumeLevel, boolean isEnabled) {
-        if (!isEnabled) return; // Don't play if disabled
+        if (!isEnabled) return;
 
         try {
-            // Look for audio file in resources folder
             URL audioURL = getClass().getResource(filePath);
             if (audioURL == null) {
                 System.err.println("Warning: Could not find audio file at " + filePath);
@@ -24,6 +22,7 @@ public class AudioService {
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioURL);
             currentSfxClip = AudioSystem.getClip();
             currentSfxClip.open(audioStream);
+            audioStream.close();
 
             setClipVolume(currentSfxClip, volumeLevel);
             currentSfxClip.start();
@@ -33,23 +32,20 @@ public class AudioService {
         }
     }
 
-    // Live update for SFX volume (if currently playing)
     public void updateSfxVolume(int volumeLevel, boolean isEnabled) {
         if (currentSfxClip != null && currentSfxClip.isOpen()) {
-            if (!isEnabled || volumeLevel == 0) setClipVolume(currentSfxClip, 0); // Mute
+            if (!isEnabled || volumeLevel == 0) setClipVolume(currentSfxClip, 0);
             else setClipVolume(currentSfxClip, volumeLevel);
         }
     }
 
     public void playBGM(String filePath, int volumeLevel, boolean isEnabled) {
         try {
-            // Stop existing BGM
             if (currentBgmClip != null && currentBgmClip.isOpen()) {
                 currentBgmClip.stop();
                 currentBgmClip.close();
             }
 
-            // Load file
             URL audioURL = getClass().getResource(filePath);
             if (audioURL == null) {
                 System.err.println("Warning: Could not find BGM file at " + filePath);
@@ -59,8 +55,8 @@ public class AudioService {
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioURL);
             currentBgmClip = AudioSystem.getClip();
             currentBgmClip.open(audioStream);
+            audioStream.close();
 
-            // Set volume
             setClipVolume(currentBgmClip, volumeLevel);
 
             if (isEnabled) currentBgmClip.loop(Clip.LOOP_CONTINUOUSLY);
@@ -74,15 +70,13 @@ public class AudioService {
         if (currentBgmClip == null || !currentBgmClip.isOpen()) return;
 
         if (isEnabled) {
-            // If it was stopped/paused, start it up again
             if (!currentBgmClip.isRunning()) {
                 currentBgmClip.loop(Clip.LOOP_CONTINUOUSLY);
                 currentBgmClip.start();
             }
-
-            setClipVolume(currentBgmClip, volumeLevel); // Update loudness
+            setClipVolume(currentBgmClip, volumeLevel);
         } else {
-            if (currentBgmClip.isRunning()) currentBgmClip.stop();  // If disabled, stop playback
+            if (currentBgmClip.isRunning()) currentBgmClip.stop();
         }
     }
 
@@ -100,15 +94,14 @@ public class AudioService {
         }
     }
 
-    //  Method for audio volume adjustment
     private void setClipVolume(Clip clip, int volumeLevel) {
         if (clip == null || !clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) return;
 
         FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 
-        if (volumeLevel <= 0) gainControl.setValue(gainControl.getMinimum()); // Full mute
-        else {
-            // Convert 0-100 to Decibels (Logarithmic scale)
+        if (volumeLevel <= 0) {
+            gainControl.setValue(gainControl.getMinimum());
+        } else {
             float decibels = 20f * (float) Math.log10(volumeLevel / 100f);
             gainControl.setValue(decibels);
         }
