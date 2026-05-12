@@ -28,9 +28,17 @@ public abstract class BaseSimulator {
         totalProcesses = processes.size();
         arrivalQueue = new PriorityQueue<>(
             Comparator.comparingInt(ProcessModel::getArrivalTime)
+            .thenComparingInt(p -> Integer.parseInt(p.getProcessId().substring(1)))
         );
         arrivalQueue.addAll(startingProcesses);
-        processQueue = new PriorityQueue<>(comparator);
+        if (comparator != null) {
+            processQueue = new PriorityQueue<>(comparator
+                .thenComparingInt(p -> Integer.parseInt(p.getProcessId().substring(1)))
+            );
+        }
+        else {
+            processQueue = new PriorityQueue<>();
+        }
     }
 
     public boolean executeStep() {
