@@ -399,14 +399,20 @@ public class AppController {
                 String burstStr = model.getValueAt(i, 1).toString().trim();
                 String arrivalStr = model.getValueAt(i, 2).toString().trim();
                 String priorityStr = model.getValueAt(i, 3).toString().trim();
+                System.out.println("id: " + id);
+                System.out.println("burstStr: " + burstStr);
+                System.out.println("arrivalStr: " + arrivalStr);
+                System.out.println("priorityStr: " + priorityStr);
 
-                if (burstStr.isEmpty() || arrivalStr.isEmpty() || priorityStr.isEmpty()) throw new Exception("Fields cannot be left blank.");
 
                 int burst = Integer.parseInt(burstStr);
                 int arrival = Integer.parseInt(arrivalStr);
                 String algo = (String) setup.getAlgorithmCombo().getSelectedItem();
                 boolean isPriorityAlgo = algo != null && algo.toLowerCase().contains("priority");
                 int priority = 1;
+
+                if (burstStr.isEmpty() || arrivalStr.isEmpty() ) throw new Exception("Fields cannot be left blank.");
+                if (isPriorityAlgo && priorityStr.isEmpty()) throw new Exception("Fields cannot be left blank.");
 
                 if (!priorityStr.isEmpty()) priority = Integer.parseInt(priorityStr);
 
@@ -416,7 +422,7 @@ public class AppController {
 
                 if (isPriorityAlgo) {
                     if (priority < 1 || priority > 20) throw new Exception("Priority must be 1-20.");
-                    if (!priorities.add(priority)) throw new Exception("Priority duplicate found: " + priority);
+                    //if (!priorities.add(priority)) throw new Exception("Priority duplicate found: " + priority);
                 }
 
                 currentProcesses.add(new ProcessModel(id, burst, arrival, priority));
